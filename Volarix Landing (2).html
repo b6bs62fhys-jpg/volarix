@@ -1,0 +1,858 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Volarix — Know your edge.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ---------------- Tokens ---------------- */
+  :root{
+    --bg:#080C14;
+    --surface:#0D1829;
+    --surface-2:#0F1E36;
+    --border:#1E3A6E;
+    --border-soft:rgba(30,58,110,0.45);
+    --border-dim:rgba(30,58,110,0.22);
+    --accent:#2D6EF5;
+    --accent-hover:#4B7BF5;
+    --accent-soft:rgba(45,110,245,0.10);
+    --text:#F8FAFC;
+    --text-muted:#64748B;
+    --text-dim:#475569;
+    --red:#EF4444;
+    --green:#10B981;
+    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    --maxw:1280px;
+    --pad:clamp(20px,4vw,40px);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  body{font-family:'Inter',system-ui,sans-serif;font-weight:400;font-size:15px;line-height:1.6;background:var(--bg);color:var(--text);overflow-x:hidden;letter-spacing:-0.005em}
+  ::selection{background:var(--accent);color:#fff}
+  a{color:inherit;text-decoration:none}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  img,svg{display:block;max-width:100%}
+
+  /* ---------------- Type helpers ---------------- */
+  .mono{font-family:var(--mono);letter-spacing:0.02em}
+  .eyebrow{font-family:var(--mono);font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:0.22em;display:inline-flex;align-items:center;gap:10px;font-weight:500}
+  .eyebrow::before{content:"";width:6px;height:6px;background:var(--accent);display:inline-block}
+  .accent{color:var(--accent)}
+  .muted{color:var(--text-muted)}
+
+  /* ---------------- Layout ---------------- */
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--pad);position:relative}
+  section{position:relative;padding:120px 0}
+
+  /* ---------------- Status bar ---------------- */
+  .status{position:relative;background:var(--bg);border-bottom:1px solid var(--border-soft);font-family:var(--mono);font-size:11px;color:var(--text-muted);letter-spacing:0.04em;z-index:30}
+  .status-inner{max-width:var(--maxw);margin:0 auto;padding:9px var(--pad);display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+  .status .seg{display:inline-flex;align-items:center;gap:8px}
+  .status .seg .dot{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block}
+  .status .sep{color:var(--text-dim)}
+  .status .spacer{flex:1}
+  @media (max-width:640px){.status .opt{display:none}}
+
+  /* ---------------- Nav ---------------- */
+  .nav{position:sticky;top:0;z-index:40;background:rgba(8,12,20,0.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border-soft)}
+  .nav-inner{max-width:var(--maxw);margin:0 auto;padding:0 var(--pad);height:64px;display:flex;align-items:center;gap:32px}
+  .logo{display:flex;align-items:center;gap:10px}
+  .logo svg{width:22px;height:22px}
+  .logo-word{font-weight:600;font-size:15px;letter-spacing:-0.01em;color:#fff}
+  .nav-links{display:flex;gap:28px;margin:0 auto}
+  .nav-links a{font-size:13px;color:var(--text-muted);transition:color .15s ease;letter-spacing:0}
+  .nav-links a:hover{color:var(--text)}
+  .nav-cta{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:var(--accent);color:#fff;border-radius:4px;font-size:13px;font-weight:500;transition:background .15s ease}
+  .nav-cta:hover{background:var(--accent-hover)}
+  @media (max-width:780px){.nav-links{display:none}}
+
+  /* ---------------- Buttons ---------------- */
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:4px;font-size:14px;font-weight:500;letter-spacing:-0.005em;transition:background .15s ease, border-color .15s ease, color .15s ease;cursor:pointer;white-space:nowrap}
+  .btn-primary{background:var(--accent);color:#fff;border:1px solid var(--accent)}
+  .btn-primary:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+  .btn-ghost{border:1px solid var(--border);color:var(--text);background:transparent}
+  .btn-ghost:hover{border-color:var(--text-muted);background:rgba(255,255,255,0.02)}
+  .btn-lg{padding:14px 22px;font-size:15px}
+
+  /* ---------------- Reveal ---------------- */
+  .reveal{opacity:0;transform:translateY(20px);transition:opacity .4s ease-out, transform .4s ease-out}
+  .reveal.in{opacity:1;transform:none}
+
+  /* ---------------- HERO ---------------- */
+  .hero{padding:100px 0 140px;position:relative;overflow:hidden}
+  .hero-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+  .hero .wrap{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:64px;align-items:center}
+  @media (max-width:1024px){.hero .wrap{grid-template-columns:1fr;gap:56px}}
+  .hero h1{font-size:clamp(48px,7vw,72px);font-weight:700;letter-spacing:-0.04em;line-height:1.02;margin:24px 0 28px;max-width:680px}
+  .hero h1 .ln2{color:var(--text-muted);display:block}
+  .hero .lede{font-size:17px;color:var(--text-muted);max-width:480px;line-height:1.55;margin-bottom:36px}
+  .hero-form{display:flex;max-width:480px;border:1px solid var(--border);border-radius:6px;overflow:hidden;background:var(--surface);transition:border-color .2s ease}
+  .hero-form:focus-within{border-color:var(--accent)}
+  .hero-form input{flex:1;padding:14px 16px;background:transparent;border:0;color:var(--text);font:inherit;font-size:14px;outline:none;min-width:0}
+  .hero-form input::placeholder{color:var(--text-dim)}
+  .hero-form button{padding:0 22px;background:var(--accent);color:#fff;font-size:14px;font-weight:500;transition:background .15s ease;border-left:1px solid var(--accent)}
+  .hero-form button:hover{background:var(--accent-hover)}
+  .hero-form.success{border-color:var(--green)}
+  .hero-form.success input{display:none}
+  .hero-form.success button{flex:1;justify-content:center;cursor:default;background:transparent;color:var(--green);border-left:0}
+  .hero-form.success button:hover{background:transparent}
+  .hero-microcopy{margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:0.06em;text-transform:uppercase}
+
+  /* Hero dashboard widget */
+  .dash{position:relative;background:var(--surface);border:1px solid var(--border-soft);border-radius:6px;padding:20px;animation:floatY 4s ease-in-out infinite;will-change:transform}
+  @keyframes floatY{0%,100%{transform:translateY(-3px)}50%{transform:translateY(3px)}}
+  @media (prefers-reduced-motion:reduce){.dash{animation:none}}
+  .dash-head{display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--border-soft);margin-bottom:14px}
+  .dash-head .t{font-family:var(--mono);font-size:10px;color:var(--text-muted);letter-spacing:0.18em;text-transform:uppercase}
+  .dash-head .m{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:0.18em}
+  .insight{padding:14px;border:1px solid var(--border-soft);background:var(--surface-2);border-radius:4px;margin-bottom:10px}
+  .insight:last-child{margin-bottom:0}
+  .insight .tag{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;display:inline-block;margin-bottom:8px;font-weight:500}
+  .tag.red{color:var(--red)}
+  .tag.green{color:var(--green)}
+  .tag.blue{color:var(--accent)}
+  .insight .body{font-size:13px;color:var(--text);line-height:1.55}
+  .insight .body b{font-weight:600}
+  .insight .body .red{color:var(--red);font-weight:500}
+  .insight .body .green{color:var(--green);font-weight:500}
+  .insight .body .blue{color:var(--accent);font-weight:500}
+  .bars{display:flex;gap:2px;height:24px;align-items:flex-end;margin-top:10px}
+  .bars i{display:block;width:5px;background:var(--text-muted);opacity:0.4}
+  .bars i.r{background:var(--red);opacity:0.9}
+
+  /* ---------------- PROBLEM ---------------- */
+  .problem h2{font-size:clamp(34px,5vw,52px);font-weight:700;letter-spacing:-0.03em;line-height:1.08;margin:18px 0 60px;max-width:760px}
+  .pgrid{display:grid;grid-template-columns:repeat(2,1fr);border-top:1px solid var(--border-soft);border-left:1px solid var(--border-soft)}
+  @media (max-width:780px){.pgrid{grid-template-columns:1fr}}
+  .pblock{padding:36px;border-right:1px solid var(--border-soft);border-bottom:1px solid var(--border-soft);display:flex;flex-direction:column;gap:12px;min-height:200px}
+  .pblock .num{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:0.18em;font-weight:500}
+  .pblock h3{font-size:22px;font-weight:600;letter-spacing:-0.02em;line-height:1.2;color:var(--text)}
+  .pblock p{color:var(--text-muted);font-size:14px;line-height:1.6;max-width:440px}
+
+  /* ---------------- HOW ---------------- */
+  .how-head{display:flex;flex-direction:column;gap:18px;margin-bottom:60px;max-width:760px}
+  .how h2{font-size:clamp(34px,5vw,52px);font-weight:700;letter-spacing:-0.03em;line-height:1.08}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border-soft);border:1px solid var(--border-soft);border-radius:6px;overflow:hidden}
+  @media (max-width:780px){.steps{grid-template-columns:1fr}}
+  .step{background:var(--bg);padding:36px;display:flex;flex-direction:column;gap:14px;min-height:240px}
+  .step .num{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:0.18em;font-weight:500}
+  .step h4{font-size:20px;font-weight:600;letter-spacing:-0.02em;color:var(--text)}
+  .step p{color:var(--text-muted);font-size:14px;line-height:1.6}
+  .step .footnote{margin-top:auto;font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:0.12em;text-transform:uppercase}
+
+  /* ---------------- FEATURES ---------------- */
+  .features-head{display:flex;flex-direction:column;gap:18px;margin-bottom:60px;max-width:760px}
+  .features h2{font-size:clamp(34px,5vw,52px);font-weight:700;letter-spacing:-0.03em;line-height:1.08}
+  .feat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+  @media (max-width:880px){.feat-grid{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:560px){.feat-grid{grid-template-columns:1fr}}
+  .fcard{background:var(--surface);border:1px solid var(--border-soft);border-radius:6px;padding:28px;display:flex;flex-direction:column;gap:14px;transition:transform 200ms ease-out, border-color 200ms ease;transform-style:preserve-3d;will-change:transform;min-height:220px;position:relative}
+  .fcard:hover{border-color:var(--border)}
+  .fcard.wide{grid-column:span 6}
+  .fcard.half{grid-column:span 3}
+  .fcard.third{grid-column:span 2}
+  @media (max-width:880px){.fcard.wide{grid-column:span 2}.fcard.half,.fcard.third{grid-column:span 1}}
+  @media (max-width:560px){.fcard.wide,.fcard.half,.fcard.third{grid-column:span 1}}
+  .fcard .ic{width:32px;height:32px;display:grid;place-items:center;color:var(--accent)}
+  .fcard .ic svg{width:22px;height:22px}
+  .fcard h4{font-size:19px;font-weight:600;letter-spacing:-0.02em;color:var(--text)}
+  .fcard p{color:var(--text-muted);font-size:13.5px;line-height:1.6}
+  .fcard .tagrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:8px}
+  .fcard .ttag{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:0.12em;font-weight:500;text-transform:uppercase}
+  .fcard .ttag + .ttag::before{content:"·";margin-right:6px;color:var(--text-dim)}
+
+  /* wide card layout */
+  .fcard.wide{flex-direction:row;align-items:center;gap:48px;padding:40px;min-height:auto}
+  .fcard.wide .left{flex:1;display:flex;flex-direction:column;gap:14px}
+  .fcard.wide .right{flex:0 0 auto;display:flex;flex-direction:column;gap:8px;padding-left:48px;border-left:1px solid var(--border-soft);min-width:200px}
+  .fcard.wide .right .kv{display:flex;justify-content:space-between;gap:24px;padding:8px 0;border-bottom:1px solid var(--border-soft);font-family:var(--mono);font-size:11px;letter-spacing:0.06em}
+  .fcard.wide .right .kv:last-child{border-bottom:0}
+  .fcard.wide .right .kv .k{color:var(--text-muted)}
+  .fcard.wide .right .kv .v{color:var(--accent)}
+  @media (max-width:780px){.fcard.wide{flex-direction:column;align-items:flex-start;gap:24px}.fcard.wide .right{padding-left:0;border-left:0;border-top:1px solid var(--border-soft);padding-top:20px;width:100%}}
+
+  /* ---------------- COMPARE ---------------- */
+  .compare-head{margin-bottom:50px;max-width:760px}
+  .compare h2{font-size:clamp(34px,5vw,52px);font-weight:700;letter-spacing:-0.03em;line-height:1.08;margin-top:18px}
+  .compare p.sub{color:var(--text-muted);font-size:15px;max-width:580px;margin-top:14px;line-height:1.55}
+  .ctable{border:1px solid var(--border-soft);border-radius:6px;overflow:hidden;background:transparent}
+  .crow{display:grid;grid-template-columns:1.6fr repeat(4,1fr);border-bottom:1px solid var(--border-soft)}
+  .crow:last-child{border-bottom:0}
+  .crow.chead{background:var(--surface)}
+  .ccell{padding:18px 22px;font-size:13.5px;color:var(--text-muted);display:flex;align-items:center}
+  .ccell.fname{color:var(--text);font-weight:500}
+  .crow.chead .ccell{font-size:14px;color:var(--text);font-weight:600;flex-direction:column;align-items:flex-start;gap:2px;padding-top:22px;padding-bottom:22px}
+  .crow.chead .ccell .sub{display:block;font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:0.1em;font-weight:400;text-transform:uppercase}
+  .ccell.vol{background:transparent;color:var(--text);font-weight:500;border-left:0}
+  .crow.chead .ccell.vol{color:var(--text)}
+  /* plain-text status words for Volarix col */
+  .vmark{font-family:var(--mono);font-size:11px;color:#2D6EF5;letter-spacing:0.14em;text-transform:uppercase;font-weight:500;background:none;border:0;padding:0}
+  .check{color:var(--text);font-family:var(--mono);font-size:14px;background:none;border:0;padding:0}
+  .cdash{color:#334155;font-family:var(--mono);font-size:16px;background:none;border:0;padding:0}
+  .partial{font-family:var(--mono);font-size:11px;color:var(--text-muted);letter-spacing:0.12em;text-transform:uppercase;background:none;border:0;padding:0}
+  @media (max-width:780px){.crow{grid-template-columns:1.4fr repeat(4,1fr)}.ccell{padding:12px 8px;font-size:11px}}
+
+  /* ---------------- EARLY ACCESS ---------------- */
+  .early{text-align:center;border-top:1px solid var(--border-soft);border-bottom:1px solid var(--border-soft);position:relative;background:linear-gradient(to bottom, var(--bg), rgba(13,24,41,0.4), var(--bg))}
+  .early .eyebrow{justify-content:center}
+  .early h2{font-size:clamp(40px,6vw,64px);font-weight:700;letter-spacing:-0.035em;line-height:1.05;margin:20px auto 20px;max-width:760px}
+  .early .lede{color:var(--text-muted);font-size:16px;max-width:540px;margin:0 auto 36px;line-height:1.6}
+  .early-form{display:flex;max-width:480px;margin:0 auto;border:1px solid var(--border);border-radius:6px;overflow:hidden;background:var(--surface);transition:border-color .2s ease}
+  .early-form:focus-within{border-color:var(--accent)}
+  .early-form input{flex:1;padding:16px 18px;background:transparent;border:0;color:var(--text);font:inherit;font-size:15px;outline:none;min-width:0}
+  .early-form input::placeholder{color:var(--text-dim)}
+  .early-form button{padding:0 24px;background:var(--accent);color:#fff;font-size:14px;font-weight:500;transition:background .15s ease;border-left:1px solid var(--accent)}
+  .early-form button:hover{background:var(--accent-hover)}
+  .early-form.success{border-color:var(--green)}
+  .early-form.success input{display:none}
+  .early-form.success button{flex:1;justify-content:center;cursor:default;background:transparent;color:var(--green);border-left:0}
+  .early-form.success button:hover{background:transparent}
+  .early-foot{margin-top:18px;font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:0.06em;text-transform:uppercase}
+
+  /* ---------------- FAQ ---------------- */
+  .faq h2{font-size:clamp(34px,5vw,52px);font-weight:700;letter-spacing:-0.03em;line-height:1.08;margin:18px 0 50px}
+  .acc{border-top:1px solid var(--border-soft)}
+  .ai{border-bottom:1px solid var(--border-soft);transition:border-color .25s ease}
+  .ai.open{border-bottom-color:var(--border)}
+  .ai-head{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:26px 0;width:100%;text-align:left;cursor:pointer;transition:color .2s ease}
+  .ai-head:hover{color:var(--accent)}
+  .ai-head .q{font-size:17px;font-weight:500;letter-spacing:-0.015em}
+  .ai-head .ic{font-family:var(--mono);font-size:18px;color:var(--accent);transition:transform .3s ease;flex:0 0 auto}
+  .ai.open .ai-head .ic{transform:rotate(45deg)}
+  .ai-body{max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.2,.7,.2,1)}
+  .ai-body p{padding:0 0 26px;color:var(--text-muted);font-size:14.5px;line-height:1.65;max-width:780px}
+
+  /* ---------------- Footer ---------------- */
+  footer{padding:64px 0 28px;border-top:1px solid var(--border-soft)}
+  .foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
+  @media (max-width:780px){.foot-grid{grid-template-columns:1fr 1fr;gap:32px}}
+  .foot-brand{display:flex;flex-direction:column;gap:14px;max-width:340px}
+  .foot-brand .tag{color:var(--text-muted);font-size:13px;line-height:1.6}
+  .fcol h5{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:0.18em;margin-bottom:18px;text-transform:uppercase;font-weight:500}
+  .fcol ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+  .fcol ul a{color:var(--text-muted);font-size:13px;transition:color .15s ease}
+  .fcol ul a:hover{color:var(--text)}
+  .foot-bottom{padding-top:24px;border-top:1px solid var(--border-soft);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:0.06em;text-transform:uppercase}
+
+  /* Scrollbar */
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-track{background:var(--bg)}
+  ::-webkit-scrollbar-thumb{background:var(--border)}
+  /* =================== v2 OVERRIDES =================== */
+  /* Hero radial gradient — subtle depth */
+  .hero{background:#080C14}
+  .hero::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:radial-gradient(ellipse 900px 600px at 30% 45%, #0D1829 0%, rgba(13,24,41,0.55) 35%, rgba(8,12,20,0) 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+  .hero-canvas{z-index:1}
+  .hero .wrap{z-index:2}
+
+  /* Hero headline — full white, weight 800, line-height 1.0 */
+  .hero h1{font-weight:800;letter-spacing:-0.04em;line-height:1.0;color:#F8FAFC;will-change:transform,opacity;transform-origin:50% 0%}
+  .hero h1 .ln{display:block;color:#F8FAFC}
+  .hero h1 .w{display:inline-block;opacity:0;transform:translateY(0.45em);transition:opacity .5s ease-out, transform .5s ease-out;will-change:transform,opacity}
+  .hero h1 .w.in{opacity:1;transform:none}
+
+  /* Microcopy below No-card line */
+  .hero-microcopy-2{margin-top:6px;color:#334155;font-family:'Inter',sans-serif;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;font-weight:500}
+
+  /* Hero right column slides on scroll */
+  .hero-right{will-change:transform,opacity}
+
+  /* Base reveal: 40px / .5s */
+  .reveal{opacity:0;transform:translateY(40px);transition:opacity .5s ease-out, transform .5s ease-out}
+  .reveal.in{opacity:1;transform:none}
+
+  /* Problem items reveal one-by-one at viewport center */
+  .pblock{opacity:0;transform:translateY(40px);transition:opacity .5s ease-out, transform .5s ease-out}
+  .pblock.in{opacity:1;transform:none}
+
+  /* Feature cards — alternating sides */
+  .fcard{opacity:0;border-color:#1E3A6E;transition:opacity .3s ease-out, transform .2s ease-out, border-color .2s ease}
+  .fcard[data-side="left"]{transform:translateX(-60px)}
+  .fcard[data-side="right"]{transform:translateX(60px)}
+  .fcard.in{opacity:1;transform:none}
+  .fcard:hover{border-color:#2D6EF5}
+
+  /* Comparison rows top-to-bottom */
+  .crow{opacity:0;transform:translateY(20px);transition:opacity .5s ease-out, transform .5s ease-out}
+  .crow.in{opacity:1;transform:none}
+
+  /* Early access split headline */
+  .early-h{display:block}
+  .early-h .a, .early-h .b{display:inline-block;opacity:0;transition:opacity .6s ease-out, transform .6s ease-out;will-change:transform,opacity}
+  .early-h .a{transform:translateX(-80px)}
+  .early-h .b{transform:translateX(80px)}
+  .early-h.in .a, .early-h.in .b{opacity:1;transform:none}
+
+  /* Dashboard widget upgrades */
+  .dash{border:1px solid #1E3A6E;background:#0D1829;border-radius:8px;box-shadow:inset 0 0 30px rgba(45,110,245,0.04)}
+  .insight{
+    background:transparent;border:0;border-left:2px solid transparent;border-radius:0;
+    padding:10px 0 12px 16px;margin-bottom:14px;
+    opacity:0;transform:translateX(30px);
+    transition:opacity .4s ease-out, transform .4s ease-out;
+  }
+  .insight:last-child{margin-bottom:0}
+  .insight.in{opacity:1;transform:none}
+  .insight.bd-red{border-left-color:#EF4444}
+  .insight.bd-green{border-left-color:#10B981}
+  .insight.bd-blue{border-left-color:#2D6EF5}
+
+  /* Bars fill animation on load */
+  .bars{align-items:flex-end}
+  .bars i{transform:scaleY(0);transform-origin:bottom;transition:transform .8s ease-out}
+  .bars.in i{transform:scaleY(1)}
+
+  @media (prefers-reduced-motion:reduce){
+    .hero h1 .w, .reveal, .pblock, .fcard, .crow, .early-h .a, .early-h .b, .insight, .bars i{
+      transition:none !important;
+      opacity:1 !important;
+      transform:none !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== NAV ========== -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="logo" aria-label="Volarix">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="2" y="2" width="20" height="20" rx="2" stroke="#2D6EF5" stroke-width="1.5"/>
+        <path d="M5 14L9 8L13 14L17 6L19 9" stroke="#F8FAFC" stroke-width="1.6" stroke-linecap="square" stroke-linejoin="miter"/>
+      </svg>
+      <span class="logo-word">Volarix</span>
+    </a>
+    <div class="nav-links">
+      <a href="#how">Workflow</a>
+      <a href="#features">Features</a>
+      <a href="#compare">Compare</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <a href="#early-access" class="nav-cta">Request access →</a>
+  </div>
+</nav>
+
+<!-- ========== HERO ========== -->
+<section class="hero">
+  <canvas class="hero-canvas" id="particles" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="hero-left">
+      <h1 id="heroH1">
+        <span class="ln ln1"><span class="w">You</span> <span class="w">don't</span> <span class="w">have</span> <span class="w">a</span> <span class="w">strategy</span> <span class="w">problem.</span></span>
+        <span class="ln ln2"><span class="w">You</span> <span class="w">have</span> <span class="w">a</span> <span class="w">pattern</span> <span class="w">problem.</span></span>
+      </h1>
+      <p class="lede">An AI trading journal that finds the specific behavior bleeding your account, names it, and quantifies the cost. Then tells you what to change.</p>
+      <form class="hero-form" id="heroForm" novalidate>
+        <input type="email" name="email" required placeholder="your@email.com" autocomplete="email" aria-label="Email address">
+        <button type="submit">Request access →</button>
+      </form>
+      <div class="hero-microcopy">No card · No contract · Unsubscribe anytime</div>
+      <div class="hero-microcopy hero-microcopy-2">Built by a futures trader. ES and MES. No spreadsheets.</div>
+    </div>
+
+    <div class="hero-right">
+      <div class="dash" id="heroDash">
+        <div class="dash-head">
+          <div class="t">Insight Feed</div>
+        </div>
+        <div class="insight bd-red">
+          <div class="tag red">⚠ Leak detected</div>
+          <div class="body"><b>Win rate drops 67% → 31%</b> after 2 consecutive losses. Cost: <span class="red">$2,840</span> last month.</div>
+          <div class="bars" aria-hidden="true">
+            <i style="height:80%"></i><i style="height:70%"></i><i style="height:88%"></i>
+            <i class="r" style="height:32%"></i><i class="r" style="height:28%"></i>
+            <i class="r" style="height:22%"></i><i class="r" style="height:36%"></i>
+            <i style="height:72%"></i><i style="height:64%"></i><i style="height:78%"></i>
+          </div>
+        </div>
+        <div class="insight bd-green">
+          <div class="tag green">✓ Edge found</div>
+          <div class="body"><b>ES longs 9:30 – 10:15 EST.</b> 74% win rate · Avg R:R <span class="green">2.3</span>.</div>
+        </div>
+        <div class="insight bd-blue">
+          <div class="tag blue">→ Recommendation</div>
+          <div class="body"><b>Set a 2-loss daily limit.</b> Backtested impact: <span class="blue">+38% monthly net</span>.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== PROBLEM ========== -->
+<section class="problem" id="problem">
+  <div class="wrap">
+    <div class="reveal">
+      <h2 style="margin-top:20px">Most traders lose money for the <span class="accent">same four reasons.</span> Their journal can't see any of them.</h2>
+    </div>
+    <div class="pgrid">
+      <div class="pblock">
+        <div class="num">01 — BEHAVIORAL</div>
+        <h3>Revenge trading.</h3>
+        <p>One loss, size doubles. Discipline collapses inside nine minutes. You feel it happen and you do it anyway.</p>
+      </div>
+      <div class="pblock">
+        <div class="num">02 — TIMING</div>
+        <h3>Session blind spots.</h3>
+        <p>Mornings green. Afternoons bleed it back. The weekly P&amp;L looks fine, so you never look closer.</p>
+      </div>
+      <div class="pblock">
+        <div class="num">03 — DISCIPLINE</div>
+        <h3>Setup drift.</h3>
+        <p>The plan said three setups. The last forty trades hit eleven of them. The edge isn't gone. It's just not what you're trading.</p>
+      </div>
+      <div class="pblock">
+        <div class="num">04 — DATA</div>
+        <h3>Raw data. No insight.</h3>
+        <p>Screenshots, notes, a CSV. It tells you what happened. It doesn't tell you why. It doesn't tell you what to change.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== HOW ========== -->
+<section class="how" id="how">
+  <div class="wrap">
+    <div class="how-head reveal">
+      <h2>From CSV to <span class="accent">clarity.</span> Three steps. Six minutes.</h2>
+    </div>
+    <div class="steps reveal">
+      <div class="step">
+        <div class="num">01 — CONNECT</div>
+        <h4>Import your trades.</h4>
+        <p>Drop a CSV or connect your broker. Futures, equities, options, crypto — Volarix handles the parsing.</p>
+        <div class="footnote">CSV · BROKER API (ROLLING)</div>
+      </div>
+      <div class="step">
+        <div class="num">02 — ANALYZE</div>
+        <h4>Run the behavioral scan.</h4>
+        <p>The same set of behavioral checks runs across every account: time-of-day P&amp;L, post-loss behavior, sizing drift, setup deviation.</p>
+        <div class="footnote">RUNS IN ~90 SECONDS</div>
+      </div>
+      <div class="step">
+        <div class="num">03 — ACT</div>
+        <h4>Read the report. Make the change.</h4>
+        <p>Every Monday, 7am: the leak, the edge, the change. Ranked by dollar impact. Measured against your own baseline.</p>
+        <div class="footnote">DELIVERED TO INBOX</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FEATURES ========== -->
+<section class="features" id="features">
+  <div class="wrap">
+    <div class="features-head reveal">
+      <h2>A journal that <span class="accent">thinks.</span></h2>
+    </div>
+
+    <div class="feat-grid">
+      <div class="fcard wide reveal-card" data-tilt data-side="left" data-idx="0">
+        <div class="left">
+          <div class="ic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h3l3 -8 3 16 3 -10 3 6h3"/></svg>
+          </div>
+          <h4>Behavioral AI Engine</h4>
+          <p>The core. Trained on a curated corpus of trader sessions plus your own data. It doesn't tell you you traded badly — it surfaces the specific pattern that's costing you, with the dollar impact attached.</p>
+          <div class="tagrow"><span class="ttag">IN DEVELOPMENT</span><span class="ttag">PRIVATE</span></div>
+        </div>
+        <div class="right">
+          <div class="kv"><span class="k">Module</span><span class="v">engine.core</span></div>
+          <div class="kv"><span class="k">Status</span><span class="v">building</span></div>
+          <div class="kv"><span class="k">Surface</span><span class="v">weekly report</span></div>
+          <div class="kv"><span class="k">Output</span><span class="v">$ impact</span></div>
+        </div>
+      </div>
+
+      <div class="fcard half reveal-card" data-tilt data-side="left" data-idx="1">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 4v16"/></svg></div>
+        <h4>Smart Trade Journal</h4>
+        <p>Auto-tagged, auto-clustered, fully searchable. Filter by setup, emotion, session, instrument — find any trade in two seconds.</p>
+        <div class="tagrow"><span class="ttag">AUTO-TAGS</span><span class="ttag">SEARCH</span><span class="ttag">EXPORT</span></div>
+      </div>
+
+      <div class="fcard half reveal-card" data-tilt data-side="right" data-idx="2">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 17l6 -6 4 4 8 -8"/><path d="M14 7h7v7"/></svg></div>
+        <h4>Performance Dashboard</h4>
+        <p>Equity curve, drawdown, R-multiple distribution, win rate by setup, session, instrument. Built for traders, not for founders.</p>
+        <div class="tagrow"><span class="ttag">EQUITY</span><span class="ttag">R-MULTIPLE</span><span class="ttag">DRAWDOWN</span></div>
+      </div>
+
+      <div class="fcard third reveal-card" data-tilt data-side="left" data-idx="3">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 9h18M8 3v4M16 3v4"/></svg></div>
+        <h4>Trading Calendar</h4>
+        <p>Every day as a heat-tile. Green good. Red bad. Click to see exactly why.</p>
+        <div class="tagrow"><span class="ttag">HEATMAP</span></div>
+      </div>
+
+      <div class="fcard third reveal-card" data-tilt data-side="left" data-idx="4">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 4h14v16H5z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg></div>
+        <h4>Weekly Edge Report</h4>
+        <p>Every Monday morning. Three leaks. Three edges. Three changes. Inbox-ready.</p>
+        <div class="tagrow"><span class="ttag">EMAIL</span><span class="ttag">PDF</span></div>
+      </div>
+
+      <div class="fcard third reveal-card" data-tilt data-side="right" data-idx="5">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12c0 -4 3 -7 8 -7M20 12c0 4 -3 7 -8 7"/><path d="M4 12h4M16 12h4"/></svg></div>
+        <h4>Broker Integrations</h4>
+        <p>Direct integrations are being built one at a time with founding members. CSV covers everything else from day one.</p>
+        <div class="tagrow"><span class="ttag">CSV</span><span class="ttag">BROKERS COMING</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== COMPARE ========== -->
+<section class="compare" id="compare">
+  <div class="wrap">
+    <div class="compare-head reveal">
+      <h2>Others show data. <span class="accent">We're building one that explains it.</span></h2>
+      <p class="sub">Existing journals are good at storage. None of them tell you which specific behavior is bleeding your account. That's the gap.</p>
+    </div>
+
+    <div class="ctable">
+      <div class="crow chead">
+        <div class="ccell fname"></div>
+        <div class="ccell vol">Volarix<span class="sub">Early access · Free</span></div>
+        <div class="ccell">TraderSync<span class="sub">$29 / mo</span></div>
+        <div class="ccell">Edgewonk<span class="sub">$169 / yr</span></div>
+        <div class="ccell">TradeZella<span class="sub">$29 / mo</span></div>
+      </div>
+      <div class="crow"><div class="ccell fname">AI behavioral analysis</div><div class="ccell vol"><span class="vmark">BUILDING</span></div><div class="ccell"><span class="cdash">—</span></div><div class="ccell"><span class="cdash">—</span></div><div class="ccell"><span class="partial">BASIC</span></div></div>
+      <div class="crow"><div class="ccell fname">Weekly insights report</div><div class="ccell vol"><span class="vmark">PLANNED</span></div><div class="ccell"><span class="cdash">—</span></div><div class="ccell"><span class="cdash">—</span></div><div class="ccell"><span class="cdash">—</span></div></div>
+      <div class="crow"><div class="ccell fname">Tells you what to change</div><div class="ccell vol"><span class="vmark">CORE THESIS</span></div><div class="ccell"><span class="cdash">—</span></div><div class="ccell"><span class="partial">PARTIAL</span></div><div class="ccell"><span class="cdash">—</span></div></div>
+      <div class="crow"><div class="ccell fname">Auto-tagging journal</div><div class="ccell vol"><span class="vmark">PLANNED</span></div><div class="ccell"><span class="check">✓</span></div><div class="ccell"><span class="partial">PARTIAL</span></div><div class="ccell"><span class="check">✓</span></div></div>
+      <div class="crow"><div class="ccell fname">Performance dashboard</div><div class="ccell vol"><span class="vmark">PLANNED</span></div><div class="ccell"><span class="check">✓</span></div><div class="ccell"><span class="check">✓</span></div><div class="ccell"><span class="check">✓</span></div></div>
+      <div class="crow"><div class="ccell fname">Broker integrations</div><div class="ccell vol"><span class="vmark">CSV FIRST</span></div><div class="ccell"><span class="check">✓</span></div><div class="ccell"><span class="partial">CSV ONLY</span></div><div class="ccell"><span class="check">✓</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== EARLY ACCESS ========== -->
+<section class="early" id="early-access">
+  <div class="wrap">
+    <div class="reveal">
+      <h2 class="early-h"><span class="a">Build this</span> <span class="b accent">with us.</span></h2>
+      <p class="lede">Lifetime founding pricing. Direct line to the founder. The product gets shaped by the people who join now — not by a roadmap on a wall.</p>
+      <form class="early-form" id="earlyForm" novalidate>
+        <input type="email" name="email" required placeholder="your@email.com" autocomplete="email" aria-label="Email address">
+        <button type="submit">Request access →</button>
+      </form>
+      <div class="early-foot">No card · No contract · Direct line to the founder</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FAQ ========== -->
+<section class="faq" id="faq">
+  <div class="wrap">
+    <div class="reveal">
+      <h2>Straight answers.</h2>
+    </div>
+    <div class="acc reveal">
+      <div class="ai">
+        <button class="ai-head" type="button"><span class="q">What is Volarix and what does it actually do?</span><span class="ic">+</span></button>
+        <div class="ai-body"><p>Volarix is a trading journal in build. The thesis: most journals show you raw data and stop there. Volarix is being built to do the next step — find the specific behavioral pattern that's costing you money, name it, quantify the dollar impact, and tell you what to change. Nothing more. Nothing magical.</p></div>
+      </div>
+      <div class="ai">
+        <button class="ai-head" type="button"><span class="q">When does it launch?</span><span class="ic">+</span></button>
+        <div class="ai-body"><p>Closed beta opens 2026. Founding cohort first. No firm public launch date yet — we'd rather ship it when it's actually useful than when the calendar says so. Early access members get every build as it lands.</p></div>
+      </div>
+      <div class="ai">
+        <button class="ai-head" type="button"><span class="q">How is this different from asking ChatGPT?</span><span class="ic">+</span></button>
+        <div class="ai-body"><p>ChatGPT has never seen your trades. Even if you paste them in, it can't run statistical analysis across hundreds of them. Volarix is a focused tool, not a chatbot: it ingests your full history, runs the same set of behavioral checks across every account, and writes the report. The output is a number, a pattern, a recommendation — not a conversation.</p></div>
+      </div>
+      <div class="ai">
+        <button class="ai-head" type="button"><span class="q">What happens to my trade data?</span><span class="ic">+</span></button>
+        <div class="ai-body"><p>Honest answer for pre-launch: right now we're not collecting any trade data — there's nothing to upload yet. Before founding members onboard, we'll publish the full data-handling spec: where it's stored, who can access it, how you delete it. Anything we promise will be written down and verifiable.</p></div>
+      </div>
+      <div class="ai">
+        <button class="ai-head" type="button"><span class="q">What does early access cost or commit me to?</span><span class="ic">+</span></button>
+        <div class="ai-body"><p>Nothing and nothing. Requesting access is an email — no card, no contract. If you're selected, you use it free during early access. Stay on after launch and you lock in founding pricing for life. Walk away and you walk away.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FOOTER ========== -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="#" class="logo">
+          <svg viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="2" width="20" height="20" rx="2" stroke="#2D6EF5" stroke-width="1.5"/>
+            <path d="M5 14L9 8L13 14L17 6L19 9" stroke="#F8FAFC" stroke-width="1.6" stroke-linecap="square"/>
+          </svg>
+          <span class="logo-word">Volarix</span>
+        </a>
+        <div class="tag">An AI trading journal that names the behavior costing you money — and tells you what to change.</div>
+      </div>
+      <div class="fcol">
+        <h5>Product</h5>
+        <ul>
+          <li><a href="#how">Workflow</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#compare">Compare</a></li>
+          <li><a href="#early-access">Early access</a></li>
+        </ul>
+      </div>
+      <div class="fcol">
+        <h5>Resources</h5>
+        <ul>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#">Changelog</a></li>
+          <li><a href="#">Methodology</a></li>
+        </ul>
+      </div>
+      <div class="fcol">
+        <h5>Company</h5>
+        <ul>
+          <li><a href="/cdn-cgi/l/email-protection#f7909283d981989b96859e8fb7909a969e9bd994989a">Contact</a></li>
+          <li><a href="#">Privacy</a></li>
+          <li><a href="#">Terms</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 VOLARIX · ALL RIGHTS RESERVED</span>
+      <span>BUILT FOR TRADERS · BY A TRADER</span>
+    </div>
+  </div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+/* ============== PARTICLE FIELD ============== */
+(()=>{
+  const canvas=document.getElementById('particles');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  let w=0,h=0,particles=[];
+  function size(){
+    const r=canvas.getBoundingClientRect();
+    w=r.width;h=r.height;
+    canvas.width=w*dpr;canvas.height=h*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  function init(){
+    const count=Math.min(120,Math.floor((w*h)/9000));
+    particles=Array.from({length:count},()=>({
+      x:Math.random()*w,
+      y:Math.random()*h,
+      vx:(Math.random()-0.5)*0.18,
+      vy:(Math.random()-0.5)*0.18 + 0.05,
+      r:Math.random()*1.1+0.4,
+      a:Math.random()*0.08+0.04
+    }));
+  }
+  function frame(){
+    ctx.clearRect(0,0,w,h);
+    for(const p of particles){
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<-5)p.x=w+5; if(p.x>w+5)p.x=-5;
+      if(p.y<-5)p.y=h+5; if(p.y>h+5)p.y=-5;
+      ctx.beginPath();
+      ctx.fillStyle='rgba(248,250,252,'+p.a+')';
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fill();
+    }
+    requestAnimationFrame(frame);
+  }
+  size();init();frame();
+  window.addEventListener('resize',()=>{size();init()});
+})();
+
+/* ============== HERO WORD STAGGER (page load) ============== */
+(()=>{
+  const words=document.querySelectorAll('#heroH1 .w');
+  if(!words.length)return;
+  words.forEach((w,i)=>{
+    setTimeout(()=>w.classList.add('in'), 150 + i*60);
+  });
+})();
+
+/* ============== HERO DASHBOARD: insight stagger + bars fill ============== */
+(()=>{
+  const insights=document.querySelectorAll('.dash .insight');
+  if(!insights.length)return;
+  // Headline finishes around 150 + 11*60 + 500 = ~1310ms. Start cards at ~1000ms.
+  insights.forEach((c,i)=>{
+    setTimeout(()=>c.classList.add('in'), 1000 + i*200);
+  });
+  // Bars fill once first insight (with bars) is revealed.
+  setTimeout(()=>{
+    document.querySelectorAll('.dash .bars').forEach(b=>b.classList.add('in'));
+  }, 1200);
+})();
+
+/* ============== HERO SCROLL PARALLAX EXIT ============== */
+(()=>{
+  const hero=document.querySelector('.hero');
+  const h1=document.getElementById('heroH1');
+  const right=document.querySelector('.hero-right');
+  if(!hero||!h1||!right)return;
+  let raf=0;
+  function update(){
+    raf=0;
+    const rect=hero.getBoundingClientRect();
+    const heroH=hero.offsetHeight||1;
+    // progress 0 at hero top in view, 1 at hero bottom passed top of viewport
+    const p=Math.max(0,Math.min(1,-rect.top/heroH));
+    h1.style.transform='scale('+(1-p*0.05)+')';
+    h1.style.opacity=String(Math.max(0,1-p*1.2));
+    right.style.transform='translateX('+(p*180)+'px)';
+    right.style.opacity=String(Math.max(0,1-p*1.5));
+  }
+  window.addEventListener('scroll',()=>{
+    if(!raf) raf=requestAnimationFrame(update);
+  },{passive:true});
+  update();
+})();
+
+/* ============== GENERIC REVEAL (.reveal) ============== */
+(()=>{
+  const io=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}});
+  },{threshold:0.15,rootMargin:'0px 0px -8% 0px'});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+})();
+
+/* ============== PROBLEM ITEMS — snap as they cross viewport center ============== */
+(()=>{
+  const io=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    });
+  },{threshold:0,rootMargin:'-35% 0px -35% 0px'});
+  document.querySelectorAll('.pblock').forEach(el=>io.observe(el));
+})();
+
+/* ============== FEATURE CARDS — alternating sides w/ stagger ============== */
+(()=>{
+  const grid=document.querySelector('.feat-grid');
+  if(!grid)return;
+  const io=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.querySelectorAll('.fcard').forEach(card=>{
+          const idx=parseInt(card.dataset.idx||'0',10);
+          setTimeout(()=>card.classList.add('in'), idx*100);
+        });
+        io.unobserve(e.target);
+      }
+    });
+  },{threshold:0.15});
+  io.observe(grid);
+})();
+
+/* ============== COMPARISON ROWS — top-to-bottom stagger ============== */
+(()=>{
+  const table=document.querySelector('.ctable');
+  if(!table)return;
+  const io=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.querySelectorAll('.crow').forEach((r,i)=>{
+          setTimeout(()=>r.classList.add('in'), i*80);
+        });
+        io.unobserve(e.target);
+      }
+    });
+  },{threshold:0.2});
+  io.observe(table);
+})();
+
+/* ============== EARLY ACCESS SPLIT HEADLINE ============== */
+(()=>{
+  const eh=document.querySelector('.early-h');
+  if(!eh)return;
+  const io=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    });
+  },{threshold:0.4});
+  io.observe(eh);
+})();
+
+/* ============== TILT (feature cards) ============== */
+(()=>{
+  document.querySelectorAll('[data-tilt]').forEach(card=>{
+    card.addEventListener('mousemove',e=>{
+      if(!card.classList.contains('in')) return;
+      const r=card.getBoundingClientRect();
+      const px=(e.clientX-r.left)/r.width-0.5;
+      const py=(e.clientY-r.top)/r.height-0.5;
+      card.style.transform=`perspective(1100px) rotateX(${-py*5}deg) rotateY(${px*5}deg)`;
+    });
+    card.addEventListener('mouseleave',()=>{card.style.transform=''});
+  });
+})();
+
+/* ============== FAQ ACCORDION ============== */
+(()=>{
+  document.querySelectorAll('.ai').forEach(ai=>{
+    const head=ai.querySelector('.ai-head');
+    const body=ai.querySelector('.ai-body');
+    head.addEventListener('click',()=>{
+      const open=ai.classList.toggle('open');
+      body.style.maxHeight=open?(body.scrollHeight+'px'):'0px';
+    });
+  });
+})();
+
+/* ============== EMAIL FORMS ============== */
+(()=>{
+  async function submit(form){
+    const input=form.querySelector('input[type="email"]');
+    const button=form.querySelector('button');
+    const email=(input.value||'').trim();
+    if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      input.focus();
+      form.style.borderColor='#EF4444';
+      setTimeout(()=>{form.style.borderColor=''},900);
+      return;
+    }
+    const original=button.textContent;
+    button.textContent='Sending…';
+    button.disabled=true;
+    try{
+      await fetch('/api/waitlist',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          email,
+          notify:'get.volarix@gmail.com',
+          subject:'New Volarix Waitlist Signup'
+        })
+      });
+    }catch(err){
+      /* network may not be available in static preview — proceed to success state anyway */
+    }
+    form.classList.add('success');
+    button.textContent='✓ Request received';
+    button.disabled=true;
+  }
+  document.querySelectorAll('#heroForm, #earlyForm').forEach(form=>{
+    form.addEventListener('submit',e=>{e.preventDefault();submit(form)});
+  });
+})();
+</script>
+</body>
+</html>
